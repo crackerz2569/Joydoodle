@@ -1,88 +1,43 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Audio Platform</title>
-    <style>
-        body { font-family: Arial, sans-serif; }
-        form { max-width: 300px; margin: auto; }
-        input, button { width: 100%; padding: 10px; margin: 5px 0; }
-    </style>
-    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
-</head>
-<body>
-    <h1>Audio Platform</h1>
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const dotenv = require('dotenv');
+const http = require('http');
+const { Server } = require('socket.io');
 
-    <!-- Registration and Login Forms -->
-    <h2>Register</h2>
-    <form id="registerForm">
-        <input type="text" id="username" placeholder="Username" required>
-        <input type="email" id="email" placeholder="Email" required>
-        <input type="password" id="password" placeholder="Password" required>
-        <button type="submit">Register</button>
-    </form>
+dotenv.config();
 
-    <h2>Login</h2>
-    <form id="loginForm">
-        <input type="email" id="loginEmail" placeholder="Email" required>
-        <input type="password" id="loginPassword" placeholder="Password" required>
-        <button type="submit">Login</button>
-    </form>
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+    cors: {
+        origin: '*',
+    }
+});
 
-    <!-- File Upload Form -->
-    <h2>Upload Music</h2>
-    <input type="file" id="fileInput">
-    <button id="uploadButton">Upload</button>
-    <p id="status"></p>
+mongoose.connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+});
 
-    <!-- Music Video Recording -->
-    <h2>Create Your Music Video</h2>
-    <video id="video" width="640" height="480" autoplay></video>
-    <button id="startRecording">Start Recording</button>
-    <button id="stopRecording">Stop Recording</button>
-    <video id="playback" controls></video>
+app.use(cors());
+app.use(express.json());
 
-    <!-- Payment -->
-    <h2>Make a Payment</h2>
-    <button id="checkoutButton">Checkout</button>
+app.use('/auth', require('./routes/auth'));
+app.use('/upload', require('./routes/upload'));
+app.use('/chat', require('./routes/chat'));
+app.use('/payment', require('./routes/payment'));
 
-    <!-- Chat System -->
-    <h2>Chat</h2>
-    <div id="chatBox" style="border:1px solid #ccc; height:200px; overflow-y:scroll;"></div>
-    <input id="chatInput" placeholder="Type your message">
-    <button id="sendChat">Send</button>
+io.on('connection', (socket) => {
+    console.log('a user connected');
+    socket.on('disconnect', () => {
+        console.log('user disconnected');
+    });
+    socket.on('chat message', (msg) => {
+        io.emit('chat message', msg);
+    });
+});
 
-    <script>
-        const socket = io('http://localhost:3000');
-
-        document.getElementById('registerForm').addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const username = document.getElementById('username').value;
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const response = await fetch('/auth/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, email, password })
-            });
-            if (response.ok) alert('User registered successfully!');
-        });
-
-        document.getElementById('loginForm').addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            const response = await fetch('/auth/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
-            });
-            if (response.ok) {
-                const { token } = await response.json();
-                alert('Logged in successfully! Token: ' + token);
-            }
-        });
-
-        document.getElementById('uploadButton').onclick = async () => {
-            const file = document.getElementById('fileInput').files[0];
-            const formData = new FormData
+server.listen(3000, () => {
+    console.log('Server running on port 3000');
+});
