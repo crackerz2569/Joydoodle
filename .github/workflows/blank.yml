@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Audio Platform</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        form { max-width: 300px; margin: auto; }
+        input, button { width: 100%; padding: 10px; margin: 5px 0; }
+    </style>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+</head>
+<body>
+    <h1>Audio Platform</h1>
+
+    <!-- Registration and Login Forms -->
+    <h2>Register</h2>
+    <form id="registerForm">
+        <input type="text" id="username" placeholder="Username" required>
+        <input type="email" id="email" placeholder="Email" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <button type="submit">Register</button>
+    </form>
+
+    <h2>Login</h2>
+    <form id="loginForm">
+        <input type="email" id="loginEmail" placeholder="Email" required>
+        <input type="password" id="loginPassword" placeholder="Password" required>
+        <button type="submit">Login</button>
+    </form>
+
+    <!-- File Upload Form -->
+    <h2>Upload Music</h2>
+    <input type="file" id="fileInput">
+    <button id="uploadButton">Upload</button>
+    <p id="status"></p>
+
+    <!-- Music Video Recording -->
+    <h2>Create Your Music Video</h2>
+    <video id="video" width="640" height="480" autoplay></video>
+    <button id="startRecording">Start Recording</button>
+    <button id="stopRecording">Stop Recording</button>
+    <video id="playback" controls></video>
+
+    <!-- Payment -->
+    <h2>Make a Payment</h2>
+    <button id="checkoutButton">Checkout</button>
+
+    <!-- Chat System -->
+    <h2>Chat</h2>
+    <div id="chatBox" style="border:1px solid #ccc; height:200px; overflow-y:scroll;"></div>
+    <input id="chatInput" placeholder="Type your message">
+    <button id="sendChat">Send</button>
+
+    <script>
+        const socket = io('http://localhost:3000');
+
+        document.getElementById('registerForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const response = await fetch('/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, email, password })
+            });
+            if (response.ok) alert('User registered successfully!');
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const response = await fetch('/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+            if (response.ok) {
+                const { token } = await response.json();
+                alert('Logged in successfully! Token: ' + token);
+            }
+        });
+
+        document.getElementById('uploadButton').onclick = async () => {
+            const file = document.getElementById('fileInput').files[0];
+            const formData = new FormDataconst express = require('express');
+const Stripe = require('stripe');
+const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+const router = express.Router();
+
+router.post('/create-checkout-session', async (req, res) => {
+    const session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: [{
+            price_data: {
+                currency: 'usd',
+                product_data: {
+                    name: 'Audio Platform Service',
+                },
+                unit_amount: 5000,
+            },
+            quantity: 1,
+        }],
+        mode: 'payment',
+        success_url: 'https://your-website.com/success',
+        cancel_url: 'https://your-website.com/cancel',
+    });
+    res.json({ id: session.id });
+});
